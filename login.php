@@ -34,16 +34,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <title>Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
 </head>
-<body>
-<div class="container mt-5">
-    <h2>Login</h2>
-    <?php if (isset($error)) echo "<p class='text-danger'>$error</p>"; ?>
+<body class="d-flex justify-content-center align-items-center vh-100 bg-light">
+  <div class="card p-4 shadow" style="width: 100%; max-width: 400px;">
+    <h2 class="text-center mb-3">Login</h2>
+    <?php if (isset($error)) echo "<p class='text-danger text-center'>$error</p>"; ?>
     <form method="POST">
-        <input class="form-control my-2" name="username" placeholder="Username" required>
-        <input class="form-control my-2" name="password" type="password" placeholder="Password" required>
-        <button class="btn btn-primary" type="submit">Login</button>
+      <input class="form-control my-2" name="username" placeholder="Username" required>
+      <input class="form-control my-2" name="password" type="password" placeholder="Password" required>
+      <button class="btn btn-primary w-100 mt-2" type="submit">Login</button>
     </form>
-</div>
+  </div>
 </body>
+
 </html>
