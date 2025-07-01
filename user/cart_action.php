@@ -2,39 +2,43 @@
 session_start();
 include "../db.php";
 
-// Cek apakah user sudah login
 if (!isset($_SESSION['user'])) {
-    http_response_code(403);
     echo "Unauthorized";
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// 🔥 Hapus item dari keranjang
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+    $keranjang_id = intval($_POST['keranjang_id']);
     $user_id = $_SESSION['user']['user_id'];
-    $games_id = isset($_POST['games_id']) ? intval($_POST['games_id']) : 0;
-    $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 0;
 
-    if ($games_id > 0 && $quantity > 0) {
-        // Cek apakah game sudah ada di keranjang
-        $check = $conn->query("SELECT * FROM keranjang WHERE user_id=$user_id AND games_id=$games_id");
-        if ($check->num_rows > 0) {
-            $conn->query("UPDATE keranjang SET quantity = quantity + $quantity WHERE user_id=$user_id AND games_id=$games_id");
-        } else {
-            $insert = $conn->query("INSERT INTO keranjang (user_id, games_id, quantity) VALUES ($user_id, $games_id, $quantity)");
-            if (!$insert) {
-                echo "Insert error: " . $conn->error;
-                exit;
-            }   error_reporting(E_ALL);
-                ini_set('display_errors', 1);
+    $conn->query("DELETE FROM keranjang WHERE keranjang_id = $keranjang_id AND user_id = $user_id");
 
-        }
-
-        echo "OK";
-    } else {
-        http_response_code(400);
-        echo "Invalid games_id or quantity";
-    }
-} else {
-    http_response_code(405);
-    echo "Method not allowed";
+    echo json_encode(['status' => 'success']);
+    exit;
 }
+
+// ✅ Tambah ke keranjang hanya jika game belum ada
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['games_id'])) {
+    $games_id = intval($_POST['games_id']);
+    $user_id = $_SESSION['user']['user_id'];
+
+    $cekBeli = $conn->query("
+            SELECT * FROM item_pemesanan ip 
+            JOIN pemesanan p ON ip.order_id = p.order_id 
+            WHERE p.user_id = $user_id AND ip.games_id = $games_id
+        ");
+
+
+    $cek = $conn->query("SELECT * FROM keranjang WHERE user_id = $user_id AND games_id = $games_id");
+
+    if ($cek->num_rows > 0) {
+        echo "Game ini sudah ada di keranjang!";
+        exit;
+    } else {
+        $conn->query("INSERT INTO keranjang (user_id, games_id, quantity) VALUES ($user_id, $games_id, 1)");
+        echo "Berhasil ditambahkan";
+        exit;
+    }
+}
+?>
